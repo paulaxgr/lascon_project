@@ -1,0 +1,319 @@
+//-----------Template for cell setup of L5 PFC neurons--------------------//
+//-----------Based on Sidiropoulou, Poirazi, Plos Computational Biology 2012------------//
+zindex=0
+SCALED=1
+
+begintemplate Pcell
+nbasal=45
+napic=9
+
+create soma[1], dend[nbasal], apic[napic]
+
+public all, somatic, basal, apical, soma,  dend, apic
+external lambda_f
+objref all, somatic,basal, apical
+
+proc Rm_sigmoid_apical() { local rm
+	Rm_soma = Rm_default
+	Rm_end=  Rm_default*0.5
+	Rm_dhalf=300 
+	Rm_steep=50
+     	for (x) {  
+		xdist = distance(x)       
+	       	rm = Rm_soma + (Rm_end - Rm_soma)/(1.0 + exp((Rm_dhalf-xdist)/Rm_steep))
+	       	g_pas(x) = 1.0/rm
+     	}
+}
+
+proc init() {
+	SCALED=1
+	zindex=$1*100
+	xopen($s2)
+	subsets()
+	// Set passive membrane properties
+	Rm_default=	15000   
+	Ra_default= 	90		
+	Cm_default = 	1.2	
+	Cm_dend = 	2		
+	celsius=	34
+	v_init = 	-66
+	// Set initial conductance values 
+	gna_default = 	0.155
+	gkdrbar_default=0.045 
+	soma_caN = 	0.3e-4
+	soma_caL = 	3e-4  
+	soma_car = 	37.5e-5 	 
+	soma_caT = 	1e-4 	
+  	soma_kca = 	0.0125  	
+	mykca_init =	0.00003 
+	kad_init =  	0.0009	
+	soma_kdBG = 	0.0023232 
+	soma_hbar = 	1.88e-5  	
+	soma_nap =  	6e-7 	 
+			 	
+	//=====================================================================================
+	forsec somatic {
+
+		insert pas    
+		g_pas = 1/Rm_default
+		e_pas = v_init
+		Ra    = Ra_default
+		cm = 	Cm_default 
+			
+		insert Naf
+		gnafbar_Naf = gna_default*12.5 
+		
+		insert kdr
+		gkdrbar_kdr = gkdrbar_default*2
+		
+		insert h      
+		gbar_h  = soma_hbar
+		K_h     = 8.8
+		vhalf_h = -82
+		
+		insert kad  
+		gkabar_kad = kad_init		
+
+		insert cal 
+		gcalbar_cal=soma_caL
+
+		insert can
+		gcalbar_can=soma_caN   
+		
+		insert kca
+		gbar_kca = soma_kca
+		
+		insert mykca 
+		gkbar_mykca = mykca_init
+		
+		insert cad
+		
+		insert Ks
+		gKsbar_Ks = soma_kdBG
+
+		insert cat 
+		gcatbar_cat = soma_caT   
+
+		insert car
+		gcabar_car=soma_car
+		
+		insert nap	
+		gnabar_nap=soma_nap*0.1
+       
+	}
+
+	access soma[0]
+	distance()
+
+	forsec apical {
+		insert pas 
+		e_pas          = v_init                    
+		Ra             = Ra_default	
+		cm             = Cm_dend
+		Rm_sigmoid_apical() 
+
+		insert Naf
+		gnafbar_Naf = gna_default*0.2 
+		
+		insert kdr 
+		gkdrbar_kdr=gkdrbar_default*0.001   
+
+		gh_soma=soma_hbar
+		gh_end=soma_hbar*10
+		H_dhalf=300
+		H_steep=50
+	     	for (x) {  
+			xdist = distance(x)  
+		       	insert h
+		       	gbar_h(x) = gh_soma + (gh_end - gh_soma)/(1.0 + exp((H_dhalf-xdist)/H_steep))
+		}
+		kap_distal_maxfactor=1
+		kap_distal_distance=100
+		kad_distal_maxfactor=0.1
+		kad_distal_distance=300  
+	
+		for (x) {  
+	       		xdist=distance(x)+0.0001
+	       		fr1= kad_distal_distance/xdist
+	       		fr2=xdist/kad_distal_distance
+	       		insert kad
+	       		insert Ks
+	       		if (xdist < kap_distal_distance ) {
+		  		gkabar_kad(x) = kad_init*kap_distal_maxfactor
+		  		gKsbar_Ks(x) = soma_kdBG*kap_distal_maxfactor  
+	      		} else if (xdist < kad_distal_distance ) {
+		  		gkabar_kad(x) = kad_distal_maxfactor*kad_init*fr1
+		  		gKsbar_Ks(x) = soma_kdBG*kad_distal_maxfactor*fr1    
+	       		} else {
+		  		gkabar_kad(x) = kad_distal_maxfactor*kad_init
+		  		gKsbar_Ks(x) = soma_kdBG*kad_distal_maxfactor  
+	       		}
+	     	}   	
+		insert cad    
+		insert car	
+		insert nap
+		insert cal
+		insert can
+		insert cat
+		insert kca
+		insert mykca
+
+ 		for (x) {  
+		 	xdist = distance(x)
+		 	fr = xdist/200
+		 	if (xdist < 200) {         
+				gcabar_car(x) = soma_car*0.5 	
+				gnabar_nap(x) = soma_nap
+				gcalbar_can(x) = soma_caN/30
+	     	    		gcalbar_cal(x) soma_caL
+				gcatbar_cat(x) = soma_caT
+				gbar_kca = soma_kca*0.1
+				gkbar_mykca = mykca_init*0.05
+		 	} else {
+				gcabar_car(x) = soma_car*fr  
+				gnabar_nap(x) = soma_nap*fr*5
+				gcalbar_can(x) = soma_caN*fr*3.2
+		   		gcalbar_cal(x) = soma_caL/(30*fr)
+				gcatbar_cat(x) = soma_caT*fr  			
+				gbar_kca = soma_kca*0.001
+				gkbar_mykca = mykca_init *0.001
+		 	}
+		}		
+		
+ 		// Set the Na+ spike attenuation variable (linearly decreasing from soma to 300 um)
+		max_ar2=0.95
+		min_ar2=0.30
+		decay_end=300.0
+		decay_start=50.0
+		
+		m_ar2 = (max_ar2 - min_ar2)/(decay_start - decay_end)
+		for (x) {
+			xdist = distance(x)
+			if (xdist < decay_start) { 
+		        	ar2_Naf(x) = max_ar2 
+			} else if (xdist > decay_end) {               
+		        	ar2_Naf(x) = min_ar2 
+			} else {               
+			ar2_Naf(x) = max_ar2 + m_ar2*xdist
+			}
+		}	}
+	access soma[0]
+	distance()
+	forsec basal {
+		insert pas 
+		g_pas	   =1/Rm_default 
+		e_pas          = v_init
+		Ra             = Ra_default  
+		cm             = Cm_dend
+ 		
+		insert nap	
+		gnabar_nap=soma_nap 	
+
+		insert kdr
+		gkdrbar_kdr=gkdrbar_default*0.09  
+               
+		insert h   
+		gbar_h = soma_hbar
+		
+		insert cad
+
+		insert can
+	
+		//A-type/Naf changes with distance (Acker, Antic,2009)
+	 	insert kad
+		insert Naf
+		//Scaled vs non-scaled
+		if (SCALED) {
+			for (x) {  
+			 	xdist = distance(x)
+			 	fr = xdist/50
+				gnafbar_Naf(x) = (gna_default*0.1*0.1)-(0.00007*xdist)		
+				gkabar_kad(x) = (kad_init*2 )+(0.00001*xdist)
+
+			 	if (xdist < 50) {        
+					gcalbar_can(x) = soma_caN/30
+		 			
+			 	} else {
+					gcalbar_can(x) = soma_caN*0.1
+			 	}
+			}
+		} else { 
+		  	gcalbar_can= soma_caN*0.065
+			gkabar_kad= kad_init*3.5 
+			gnafbar_Naf = gna_default*0.1*0.1				
+		}
+	} 
+
+	forall {
+		if (ismembrane("Naf")) {ena = 55}
+		if (ismembrane("k_ion")) {ek=-85}
+     
+		if(ismembrane("ca_ion")) {
+			eca = 140
+			cai0_ca_ion =  2.4e-6  
+			cao = 2
+			ion_style("ca_ion",3,2,1,1,1)		}
+	}
+	
+	forall {nseg = int((L/(0.1*lambda_f(100))+0.9)/2)*2+1}	
+	
+}
+
+endtemplate Pcell
+
+objref Fl[7]
+if (cl_id==1) {
+	//Functional type 1
+	Fl[0]=new String ("47-2b")
+	Fl[1]=new String ("48-3b")
+	Fl[2]=new String ("C3_5")
+	Fl[3]=new String ("H2-3")
+	Fl[4]=new String ("h-2")
+	Fl[5]=new String ("j-3a")
+	Fl[6]=new String ("n-3")
+
+} else {
+	//Functional type 2
+	Fl[0]=new String ("33-3")
+	Fl[1]=new String ("35-3a")
+	Fl[2]=new String ("36-4b")
+	Fl[3]=new String ("36-4")
+	Fl[4]=new String ("48-3d")
+	Fl[5]=new String ("43-3")
+	Fl[6]=new String ("L-2a")
+}
+
+strdef filename, basepath, manipulation
+manipulation="modified"
+if (cl_id==1) {
+	sprint(basepath, "%s/cluster_1",manipulation) 
+} else {
+	sprint(basepath, "%s/cluster_2",manipulation) 
+}
+//Create pyramidal cells
+nPcells=7
+objref Pcells[nPcells]
+for i = 0, (nPcells-1) {
+	sprint(filename, "%s/%s.CNG.hoc",basepath, Fl[i].s) 
+	Pcells[i] = new Pcell(i, filename)
+}proc current_balance() {	
+	finitialize($1)
+	fcurrent()	
+	for cn=0, nPcells-1 {
+		forsec Pcells[cn].all {
+	      		for (x) {
+				if (ismembrane("na_ion") && ismembrane("ca_ion") && (ismembrane("k_ion"))){
+		    			e_pas(x)=(ina(x)+ik(x)+ica(x)+g_pas(x)*v(x))/g_pas(x) 
+				} else if (ismembrane("na_ion") && (ismembrane("k_ion"))) {
+		    			e_pas(x)=(ina(x)+ik(x)+g_pas(x)*v(x))/g_pas(x)
+				} else {
+					e_pas(x)=v(x)
+				}
+			fcurrent()
+			}
+		}
+	}
+}
+
+current_balance(v_init)
+

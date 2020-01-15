@@ -1,0 +1,95 @@
+//Adapted as is from L5 PFC microcircuit used to study persistent activity (Papoutsi et al.2014,2013)
+//Accession: 155057
+
+begintemplate INcell
+
+public soma, axon
+create soma, axon
+
+proc init () {
+
+create soma, axon
+
+soma {
+	nseg=1
+	L=53
+	diam=42
+
+	insert pas
+	cm=1.2            
+	g_pas =1/15000   	
+	e_pas = -70
+	Ra=150
+
+	insert Naf_in
+	gnafbar_Naf_in= 0.045*5 
+
+	insert kdr_in
+	gkdrbar_kdr_in=0.018
+
+	insert IKs_in	
+	gKsbar_IKs_in = 0.000725*0.1	
+}
+
+axon {
+	nseg=1
+	L=113.22
+	diam=0.7
+
+	insert pas
+	cm=1.2            
+	g_pas =1/15000   
+	e_pas = -70
+	Ra=150
+	
+	insert Naf_in
+	gnafbar_Naf_in=0.045*12
+
+	insert kdr_in
+	gkdrbar_kdr_in=0.018
+}
+
+	
+connect axon(0), soma(0.5)	
+
+ko0_k_ion = 3.82   
+ki0_k_ion = 140    
+celsius   = 34
+}
+
+init()
+endtemplate INcell
+
+//Create interneurons
+nINcells = 1
+objref INcells[nINcells]
+
+for i = 0, nINcells-1 {
+INcells[i] = new INcell()
+}
+
+//Create list with sections
+objref insoma_list
+
+insoma_list = new SectionList()
+for i=0, nINcells-1 {
+INcells[i].soma insoma_list.append()
+}
+proc current_balancein() {	
+	finitialize($1)
+	fcurrent()
+	forsec insoma_list {
+      		for (x) {
+			if (ismembrane("na_ion") && ismembrane("ca_ion") && (ismembrane("k_ion"))){
+	    			e_pas(x)=(ina(x)+ik(x)+ica(x)+g_pas(x)*v(x))/g_pas(x) 
+			} else if (ismembrane("na_ion") && (ismembrane("k_ion"))) {
+	    			e_pas(x)=(ina(x)+ik(x)+g_pas(x)*v(x))/g_pas(x)
+			} else {
+				e_pas(x)=v(x)
+			}
+			fcurrent()
+		}
+	}
+}
+
+current_balancein(-70) 

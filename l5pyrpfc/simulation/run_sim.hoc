@@ -1,0 +1,7 @@
+proc run_sim() {
+load_file("network_coincidence.hoc")
+cl_id=1
+interval_t=0
+num_run=0
+
+}

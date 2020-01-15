@@ -1,0 +1,85 @@
+//Papoutsi,Kastellakis,Poirazi, J. Neurophysiology 2017
+//Simulations reproduce Figure 7 (PFC microcircuits)
+//Adjusted for single-tasking
+
+//Set simulation setup
+load_proc("nrnmainmenu")
+cvode_active(0)
+tstop=4000
+dt=0.1
+steps_per_ms=10
+setdt()
+
+//Biophysical properties of pyramidal neurons and interneuron 
+xopen ("L5PFC_biophysics.hoc") 
+xopen("incell.hoc")
+//To be used for the microcircuit setup and stimulation
+xopen("microcircuit.hoc")
+xopen("time_stim.hoc")
+xopen("background_noise.hoc")	
+
+//Graphs
+xopen("basic-graphics.hoc")
+for j=0, (nPcells-1) {addgraph_2("Pcells[j].soma.v(0.5)", 0,tstop, -70, -30)}
+addgraph("INcells[0].soma.v",0 ,-70, -50, tstop)
+
+//Synaptic Weights
+nmdaweight = 	0.2  			//Pyramidal to pyramidal NMDA conductance, for 1.1 iNMDA-to-iAMPA ratio (Wang,Gao,200). For ratio 0.9 use: 0.16/For ratio 1.3 use:0.25
+ampaweight=	0.000058		//Pyramidal to pyramidal AMPA conductance (Wang,Gao,200).
+ampaweightin=	7.5e-4			//According to Wang,Gao,2009
+nmdaweightin=	3.2e-4			//Ratio inmda/iampa for interneuron *0.5(Wang,Gao,2009)
+gabaaweight=	6.9e-4 			//According to Woo(2007)
+gababweight=    1.05e-4			
+
+bc_inh=106				//Number of spontaneously activated excitatory synapses of the interneuron model. Number of synapses=2 synapses*length.
+maxsynpi=2				//PC-IN connections (Thomson, 2007)
+maxsynip=4				//IN-PC connections (Peters,2008,Tamas,1997,J.Physiology,Perez,Larkum,2006)
+syn_basal_con=5
+
+perc_back_ap=1				//All synapses (2synapses*length) are spontaneously active along the apical tree  
+perc_back_bas=1				//All synapses (2synapses*length) are spontaneously active along the basal tree  
+s_Hz=0.1				//Frequency of poisson process
+
+//Make directory to save data
+strdef data_dir,tempstr
+objref vsoma[nPcells], somaref[nPcells], vinsoma, insomaref
+sprint(data_dir, "coincidence/back_microcirc_scaled_original/cl%d_int%d",cl_id,interval_t)
+sprint(tempstr,"mkdir -p %s", data_dir) 
+system(tempstr)	
+
+//---------------------------------------------------RUN SIMULATION----------------------------------------------------//
+//connect pyramidal neurons
+connect_pyrb(num_run)
+
+//connecte pyramidal neurons with interneuron
+connect_pyrin(num_run)
+
+//Include to simulate spontaneous input
+//background(num_run,s_Hz) 
+
+//Stimulation
+time_stim(nPcells,interval_t,num_run)
+
+//Record and save data
+for cn=0, nPcells-1 {
+	vsoma[cn] = new Vector()
+	vsoma[cn].record(&Pcells[cn].soma[0].v(0.5))
+}
+vinsoma=new Vector()
+vinsoma.record(&INcell[0].soma.v(0.5))
+	
+run()
+
+for cn=0, nPcells-1 {
+	somaref[cn] = new File()
+	sprint(tempstr, "%s/soma_%d_run_%d.dat",data_dir, cn, num_run)
+	somaref[cn].wopen(tempstr)
+	vsoma[cn].printf(somaref[cn], "%f\n")
+	somaref[cn].close()
+}
+insomaref = new File()
+sprint(tempstr, "%s/insoma_run_%d.dat",data_dir, num_run)
+insomaref.wopen(tempstr)
+vinsoma.printf(insomaref, "%f\n")
+insomaref.close()
+

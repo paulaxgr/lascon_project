@@ -1,0 +1,56 @@
+//Two events stimulus with increasing inter-stimulus interval, to study coincidence detection
+ 
+objref ns_t[2],nc_ampa_t[2][nPcells][500],nc_nmda_t[2][nPcells][500], ampa_t[2][nPcells][500], nmda_t[2][nPcells][500], mat_bas_t[nPcells]
+
+proc time_stim() {
+	num_neurons=$1
+	interval_t=$2
+	dens_t=0.2
+	r=new Random($3*7)
+	r.uniform(0,1)
+	
+	delay_stim=500
+
+	for n_ns=0,1 {
+		ns_t[n_ns]=new NetStim(0.5)
+		ns_t[n_ns].interval=0
+		ns_t[n_ns].number=1
+		ns_t[n_ns].start=delay_stim
+		ns_t[n_ns].noise=0
+		
+		for pn=0,num_neurons-1 {
+			mat_bas_t[pn]=new Vector()
+			tot_bas=0
+			syn_basal_t=0
+			forsec Pcells[pn].basal {tot_bas=tot_bas+L}	
+			syn_basal_t=2*tot_bas*dens_t/2
+			forsec Pcells[pn].basal {
+				mat_bas_t[pn].append(int((L/tot_bas)*syn_basal_t))
+			}
+			syn=-1
+			num=0
+			forsec Pcells[pn].basal {
+				for many_t=0, mat_bas_t[pn].x(num)-1 {
+					syn=syn+1
+					
+					PID=r.repick()
+
+					ampa_t[n_ns][pn][syn]=new GLU(PID)
+					nmda_t[n_ns][pn][syn]=new nmda_spikes(PID)
+
+					nc_ampa_t[n_ns][pn][syn] = new NetCon(ns_t[n_ns], ampa_t[n_ns][pn][syn], -20, 0, ampaweight)
+					nc_nmda_t[n_ns][pn][syn] = new NetCon(ns_t[n_ns], nmda_t[n_ns][pn][syn], -20, 0, nmdaweight)
+				}
+				num=num+1
+			}
+		}
+		delay_stim=delay_stim+interval_t
+	}
+}	
+
+		
+		 
+
+
+
+

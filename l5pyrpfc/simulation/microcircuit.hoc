@@ -1,0 +1,98 @@
+// Connect neurons to a microciruit
+
+//-----Define objects and strings used.
+init_of_objects=1000
+//Stimualtion 
+objref ns
+objref ampaa[nPcells][init_of_objects][init_of_objects], nmdaa[nPcells][init_of_objects][init_of_objects], conampaa[nPcells][init_of_objects][init_of_objects], connmdaa[nPcells][init_of_objects][init_of_objects]
+//Circuit connections 
+objref ampab[nPcells][nPcells][init_of_objects], nmdab[nPcells][nPcells][init_of_objects], conampab[nPcells][nPcells][init_of_objects]
+objref connmdab[nPcells][nPcells][init_of_objects]
+// Connect neurons
+objref num_of_syn_dend[nPcells], basal_count[nPcells], delstim, delpyrin, delinpyr
+objref ampain[nPcells][nINcells][init_of_objects], nmdain[nPcells][nINcells][init_of_objects], conampapin[nPcells][nINcells][init_of_objects], connmdapin[nPcells][nINcells][init_of_objects], locpi
+objref gabaa[nINcells][nPcells][init_of_objects], gabab[nINcells][nPcells][init_of_objects], congaip[nINcells][nPcells][init_of_objects], congbip[nINcells][nPcells][init_of_objects]
+objref ref_basal_choose[nPcells], r, pick_dend
+
+proc connect_pyrb() {		
+	delstim= new Random($1+3)		
+	TIDp=delstim.normal(1.7,0.9)		//According to Thomson(2007)
+	pick_dend=new Random($1/6)	
+	r=new Random()
+	r.uniform(0,1)	
+
+	for cn=0, nPcells-1 {
+		ref_basal_choose[cn]=new List()
+		//For all basal dendrites
+		forsec Pcells[cn].basal{ 
+			ref_basal_choose[cn].append(new SectionRef())
+		}
+	}
+
+	//Randomly allocate connections between pyramidal neurons.
+	for sn=0, nPcells-1 {
+		for tn=0, nPcells-1 {
+			if (tn!=sn ){
+				for syn=0, syn_basal_con-1 {
+					num=pick_dend.discunif(0, ref_basal_choose[tn].count()-1)
+					PID=r.repick()
+					TIDp=delstim.repick()
+					if (TIDp<0) TIDp=TIDp*(-1)
+
+					access ref_basal_choose[tn].o(num).sec
+					ampab[tn][sn][syn]=new GLU(PID)
+					nmdab[tn][sn][syn]=new nmda_spikes(PID)
+					
+					Pcells[sn].soma {conampab[tn][sn][syn] = new NetCon(&v(1), ampab[tn][sn][syn], -20, TIDp, ampaweight)}
+					Pcells[sn].soma {connmdab[tn][sn][syn] = new NetCon(&v(1), nmdab[tn][sn][syn], -20, TIDp, nmdaweight)}
+				}
+			}
+		}
+	}
+}
+proc connect_pyrin () {
+	locpi=new Random($1*3)
+	locpi.uniform(0,1)
+	
+	delpyrin=new Random($1)
+	delpyrin.normal(0.6, 0.2)		//latency from Pc-In, according to Thomson(2007), also Angulo,Audinat(1999)
+	
+	for sn=0, nPcells-1 {
+		for tn=0, nINcells-1 {
+			for syn=0, maxsynpi-1 {
+				PID = locpi.repick ()
+
+				INcells[tn].soma ampain[sn][tn][syn] = new GLUIN(PID)
+				INcells[tn].soma nmdain[sn][tn][syn] = new NMDA(PID)
+			
+				TIDpi=delpyrin.repick()
+				if (TIDpi<0) TIDpi=TIDpi*(-1)
+
+				Pcells[sn].soma conampapin[sn][tn][syn] = new NetCon(&v(1), ampain[sn][tn][syn], -20, TIDpi, ampaweightin)
+				Pcells[sn].soma connmdapin[sn][tn][syn] = new NetCon(&v(1), nmdain[sn][tn][syn], -20, TIDpi, nmdaweightin)   
+			}
+		}
+	}
+
+	delinpyr= new Random($1*8)
+	delinpyr.normal(1.8, 0.8)	//latency from IN-Pc, according to Thomson(2007)
+
+	for sn=0, nINcells-1 {
+		for tn=0, nPcells-1 {
+			for syn=0, maxsynip-1 {
+				PID = locpi.repick ()
+
+				Pcells[tn].soma gabaa[sn][tn][syn] = new GABAa(PID)
+				Pcells[tn].soma gabab[sn][tn][syn] = new GABAb(PID)
+			
+				TIDip=delpyrin.repick()
+				if (TIDip<0) TIDip=TIDip*(-1)
+
+				INcells[sn].soma congaip[sn][tn][syn] = new NetCon(&v(1), gabaa[sn][tn][syn], -20, TIDip, gabaaweight)
+				INcells[sn].soma congbip[sn][tn][syn] = new NetCon(&v(1), gabab[sn][tn][syn], -20, TIDip, gababweight)   
+			}
+		}
+	}
+}
+
+

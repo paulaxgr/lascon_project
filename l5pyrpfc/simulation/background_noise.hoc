@@ -1,0 +1,116 @@
+//Background noise
+init_obj=8000
+objref r_time,r_time_a,r_time_inh, time_vec_a[nPcells][init_obj], time_vec_b[nPcells][init_obj], vd, r, vc_apical[nPcells][init_obj], vc_basal[nPcells][init_obj], bc_apical_ampa[nPcells][init_obj], bc_apical_nmda[nPcells][init_obj], bc_basal_ampa[nPcells][init_obj], bc_basal_nmda[nPcells][init_obj]
+objref nc_apical_ampa[nPcells][init_obj], nc_apical_nmda[nPcells][init_obj], nc_basal_ampa[nPcells][init_obj], nc_basal_nmda[nPcells][init_obj]
+objref mat_bas[nPcells], mat_ap[nPcells]
+objref time_vec_inh[nPcells][init_obj],vc_inh[nPcells][init_obj], bc_inh_ampa[nPcells][init_obj], bc_inh_nmda[nPcells][init_obj], nc_inh_ampa[nPcells][init_obj], nc_inh_nmda[nPcells][init_obj]
+
+proc background () {
+	num_seed=$1
+	r=new Random(num_seed*3)
+	r.uniform(0,1)
+
+	//Random for background noise
+	r_time_a=new Random(num_seed*4)
+	r_time_a.poisson(0.1/1000)
+	r_time=new Random(num_seed)
+	r_time.poisson($2/1000)
+
+	r_time_inh=new Random(num_seed/10)
+	r_time_inh.poisson(1/1000)
+
+	for cn=0, nPcells-1 {
+		//Uniform distribute inputs to dendrites according their length, so as to have the same density
+		mat_bas[cn]=new Vector()
+		mat_ap[cn]=new Vector()
+		tot_ap=0
+		tot_bas=0
+		syn_apical=0
+		syn_basal=0
+		forsec Pcells[cn].apical {tot_ap=tot_ap+L}
+		forsec Pcells[cn].basal {tot_bas=tot_bas+L}
+		syn_apical=2*tot_ap*perc_back_ap		
+		syn_basal=2*tot_bas*perc_back_bas
+		forsec Pcells[cn].apical {
+			mat_ap[cn].append(int((L/tot_ap)*syn_apical))
+		}
+		forsec Pcells[cn].basal {
+			mat_bas[cn].append(int((L/tot_bas)*syn_basal))
+		}
+
+		syn=-1
+		num=0
+		forsec Pcells[cn].apical {
+			for many_a=0, mat_ap[cn].x(num)-1 {
+				syn=syn+1
+				//Generate time-points
+				time_vec_a[cn][syn]=new Vector()
+				for tt=0, tstop-1 {
+					if (r_time_a.repick()) {time_vec_a[cn][syn].append(tt)}
+				}
+				//Create Vecstims
+				vc_apical[cn][syn] = new VecStim(0.5)
+				vc_apical[cn][syn].delay = 0
+				vc_apical[cn][syn].play(time_vec_a[cn][syn])
+				
+				PID=r.repick()
+				bc_apical_ampa[cn][syn]=new GLU(PID)
+				bc_apical_nmda[cn][syn]=new nmda_spikes(PID)
+
+				nc_apical_ampa[cn][syn] = new NetCon(vc_apical[cn][syn], bc_apical_ampa[cn][syn], -20, 0, ampaweight)
+				nc_apical_nmda[cn][syn] = new NetCon(vc_apical[cn][syn], bc_apical_nmda[cn][syn], -20, 0, nmdaweight*0.5)	
+			
+			}
+			num=num+1
+		}
+
+		syn=-1
+		num=0
+		forsec Pcells[cn].basal {
+			for many_b=0, mat_bas[cn].x(num)-1 {
+				syn=syn+1
+				time_vec_b[cn][syn]=new Vector()
+				for tt=0,tstop-1 {
+					if (r_time.repick()){time_vec_b[cn][syn].append(tt)}
+				}
+				vc_basal[cn][syn] = new VecStim(0.5)
+				vc_basal[cn][syn].delay = 0
+				vc_basal[cn][syn].play(time_vec_b[cn][syn])
+
+				PID=r.repick()
+
+				bc_basal_ampa[cn][syn]=new GLU(PID)
+				bc_basal_nmda[cn][syn]=new nmda_spikes(PID)
+
+				nc_basal_ampa[cn][syn] = new NetCon(vc_basal[cn][syn], bc_basal_ampa[cn][syn], -20, 0, ampaweight)
+				nc_basal_nmda[cn][syn] = new NetCon(vc_basal[cn][syn], bc_basal_nmda[cn][syn], -20, 0, nmdaweight)
+			}
+			num=num+1
+		}
+	}
+	for cn=0, nINcells-1 {
+		for syn=0, bc_inh-1 {
+			objref vd
+			vd=new Vector()
+
+			for i=0, tstop-1 {
+				vd.append(r_time_inh.repick())
+			}
+			time_vec_inh[cn][syn]=new Vector()
+			time_vec_inh[cn][syn]=vd.c.indvwhere(">=", 1)
+
+			vc_inh[cn][syn] = new VecStim(0.5)
+			vc_inh[cn][syn].delay = 0
+			vc_inh[cn][syn].play(time_vec_inh[cn][syn])
+
+			PID=r.repick()
+
+			INcells[cn].soma bc_inh_ampa[cn][syn]=new GLUIN(PID)
+			INcells[cn].soma bc_inh_nmda[cn][syn]=new NMDA(PID)
+
+			nc_inh_ampa[cn][syn] = new NetCon(vc_inh[cn][syn], bc_inh_ampa[cn][syn], -20, 0, ampaweightin)
+			nc_inh_nmda[cn][syn] = new NetCon(vc_inh[cn][syn], bc_inh_nmda[cn][syn], -20, 0, nmdaweightin)
+		}
+	}
+}
+	

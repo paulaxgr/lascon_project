@@ -1,0 +1,5 @@
+chdir("simulation/")
+load_file("run_sim.hoc")
+xpanel("Papoutsi A., Kastellakis G., Poirazi P.")
+xbutton("run simulation", "run_sim()")
+xpanel()
