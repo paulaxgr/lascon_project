@@ -53,6 +53,7 @@ extern void _shock2interD_reg(void);
 extern void _shock2interV_reg(void);
 extern void _shock2pyrD_reg(void);
 extern void _shock2pyrV_reg(void);
+extern void _stdp_reg(void);
 extern void _tone2interD_reg(void);
 extern void _tone2interDNE_reg(void);
 extern void _tone2interV_reg(void);
@@ -120,6 +121,7 @@ void modl_reg(){
     fprintf(stderr," ./KimEtAl2013//shock2interV.mod");
     fprintf(stderr," ./KimEtAl2013//shock2pyrD.mod");
     fprintf(stderr," ./KimEtAl2013//shock2pyrV.mod");
+    fprintf(stderr," ./KimEtAl2013//stdp.mod");
     fprintf(stderr," ./KimEtAl2013//tone2interD.mod");
     fprintf(stderr," ./KimEtAl2013//tone2interDNE.mod");
     fprintf(stderr," ./KimEtAl2013//tone2interV.mod");
@@ -184,6 +186,7 @@ void modl_reg(){
   _shock2interV_reg();
   _shock2pyrD_reg();
   _shock2pyrV_reg();
+  _stdp_reg();
   _tone2interD_reg();
   _tone2interDNE_reg();
   _tone2interV_reg();
