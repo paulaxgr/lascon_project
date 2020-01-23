@@ -1,0 +1,71 @@
+//By Pirate Henry 2011 and modified by DK
+
+proc ConnectTwoCells() { local targetid,sourceid,type,initW,delay,threshold localobj target,syn,nc,synlist,nclist
+	sourceid = $1
+	targetid = $2
+	type = $3
+//	initW = $4
+	delay = $4
+//	threshold = $6
+	synlist = $o5  //$o7
+	nclist = $o6   //$o8
+	if (!pc.gid_exists(targetid)) { continue }				// Can't connect to target if it doesn't exist 
+		cellid = pc.gid2cell(targetid)
+		if ( sourceid <= 395 ) { if (type == 1 || type == 2) {cellid.dend syn = new pyrD2pyrD_STFD(0.9)}
+							     if (type == 3 || type == 4) {cellid.dend syn = new pyrD2pyrDDA_STFD(0.9)}
+   								 if (type == 5 || type == 6) {cellid.dend syn = new pyrD2pyrV_STFD(0.9)}
+							     if (type == 7 || type == 8) {cellid.dend syn = new pyrD2pyrVDA_STFD(0.9)}						 
+								 if (type == 9 || type == 10) {
+																cellid.dend syn = new pyrD2interD_STFD(0.9)
+																}
+								 if (type == 11 || type == 12) {
+																cellid.dend syn = new pyrD2interV_STFD(0.9)
+																}
+								 }								 
+								 
+		if ( sourceid >= 396 && sourceid <=799 ) { if (type == 1 || type == 2) {cellid.dend syn = new pyrV2pyrD_STFD(0.9)}
+												   if (type == 3 || type == 4) {cellid.dend syn = new pyrV2pyrDDA_STFD(0.9)}
+												   if (type == 5 || type == 6) {cellid.dend syn = new pyrV2pyrV_STFD(0.9)}
+												   if (type == 7 || type == 8) {cellid.dend syn = new pyrV2pyrVDA_STFD(0.9)}
+												   if (type == 9 || type == 10) {
+																				cellid.dend syn = new pyrV2interD_STFD(0.9)
+																				}
+												   if (type == 11 || type == 12) {
+																				cellid.dend syn = new pyrV2interV_STFD(0.9)
+																			}
+												}	
+												   
+		if ( sourceid >= 800 && sourceid <=903 ) { if (type == 1) {cellid.soma syn = new interD2pyrD_STFD(0.9)}
+												   if (type == 2) {cellid.soma syn = new interD2pyrDNE_STFD(0.9)}	
+												   if (type == 3) {cellid.soma syn = new interD2pyrDDA_STFD(0.9)}
+												   if (type == 4) {cellid.soma syn = new interD2pyrDDANE_STFD(0.9)}				
+												   if (type == 5 || type == 6) {cellid.soma syn = new interD2pyrV_STFD(0.9)}			
+												   if (type == 7 || type == 8) {cellid.soma syn = new interD2pyrVDA_STFD(0.9)}}	
+												   
+		if ( sourceid >= 904 ) { if (type == 1) {cellid.soma syn = new interV2pyrD_STFD(0.9)}
+							     if (type == 2) {cellid.soma syn = new interV2pyrDNE_STFD(0.9)}	
+								 if (type == 3) {cellid.soma syn = new interV2pyrDDA_STFD(0.9)}
+								 if (type == 4) {cellid.soma syn = new interV2pyrDDANE_STFD(0.9)}				
+								 if (type == 5 || type == 6) {cellid.soma syn = new interV2pyrV_STFD(0.9)}			
+								 if (type == 7 || type == 8) {cellid.soma syn = new interV2pyrVDA_STFD(0.9)}}
+						 
+		syn.pregid = sourceid
+		syn.postgid = targetid
+		
+		cellid.synlist.append(syn)   // To save synapse data, weight and ca+ concentration
+		syn.srcid= sourceid
+		syn.destid= targetid
+		
+		
+		nc = pc.gid_connect(sourceid,syn)
+		nc.weight = 1
+		nc.delay = delay
+		nc.threshold = -10
+		
+														
+		//printf("%d %d %d %d %d %d\n" ,syn.postgid,syn.pregid, syn.initW, nc.delay, nc.threshold, type)		
+		saveM.printf("%d %d %f %d %d %d\n" ,syn.postgid, syn.pregid, syn.initW, nc.delay, nc.threshold, type)		
+		synlist.append(syn)
+		nclist.append(nc)
+		//{pc.barrier()}	
+}

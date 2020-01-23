@@ -1,0 +1,1222 @@
+// Create by D. Kim in 2012 
+// pyramidal Cells template
+
+/////////////////////////////
+///// Type A cell in LA /////
+/////////////////////////////
+
+begintemplate Cell_A
+	public soma, dend, p_dend, connect2target, type
+	create soma, dend, p_dend
+
+	public ncl, synlist
+	objref ncl, synlist
+	strdef type	
+		
+	proc init() {	
+	
+		ncl = new List()
+		synlist =new List()		
+		type = "Cell_A"	
+
+		gUnf_Xsoma = 2.5e-05
+		Rm = 80000 // decreased overall
+		SpineScale = 1.76371308
+		SpineScale_leak = 1.763714578
+		Cm = 1.4
+		RaAll= 200
+		RaSoma= 146.969697 
+		RaAxIs = 100
+		Vpas = -70 // -67
+		gna =  .03*0.6*1.5 /* decreased from 0.03 */
+		AXONM = 3 /*decrease from 2 */
+		gkdr = 0.005*.6 /* decreased from 0.005 */
+		KMULT =  0.022*.65 /* decreased from 0.022 */
+		KMULTP = 0.022*.65 /* decreased from 0.022 */
+		ghd=0.000003 *.7
+		nash=10
+		Vrest = -70
+		celsius = 31.0 
+		gsAHP = 0.008//0.03
+		GmC = 0.00055//0.062//0.07
+		Diameter = 5
+		
+		/////// topology ////////
+		create soma, dend
+		connect dend(0), soma(0)
+		connect p_dend(0), soma(1)
+		
+		/////// geometry ////////
+		soma {L = 25 diam = 24.75 nseg = 1}		//{L = 20 diam = 20 nseg = 13}
+		dend {diam=2.5 L=296.25/diam nseg=1}
+		p_dend {diam = Diameter L = 2000/diam nseg=1} //
+		
+		access soma
+		
+		forall {
+				insert cadyn gcabar_cadyn = 2e-4  eca = 120
+		}
+		p_dend {
+				insert leak el_leak=Vpas glbar_leak = 2.4444e-5*3 Ra=RaAll cm=Cm*1.98285453
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3 sh_na3=nash ar_na3=1	gbar_na3=gna
+				insert kdr gkdrbar_kdr=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHP gsAHPbar_sAHP = 0.4*gsAHP
+				insert im gmbar_im = GmC
+				v=Vrest
+		}		
+		soma {	
+				insert na3  gbar_na3=1.9798*gna sh_na3=nash ar_na3=1				
+				insert kdr gkdrbar_kdr=gkdr
+				insert kap gkabar_kap = KMULTP*0.1
+				insert im gmbar_im = GmC	
+				insert leak el_leak=Vpas glbar_leak = 1/Rm Ra=RaSoma cm=Cm		
+		}	
+		
+		dend {  // need to add Spine Scale
+				insert leak el_leak=Vpas glbar_leak = SpineScale_leak*1/Rm*1.5 Ra=RaAll  cm=Cm*SpineScale     //1.9804/Rm	
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3 sh_na3=nash ar_na3=1	gbar_na3=gna
+				insert kdr gkdrbar_kdr=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHP gsAHPbar_sAHP = gsAHP 
+				insert im gmbar_im = GmC		
+				}
+
+		forall {
+			v=Vrest
+			ena = 45
+			ek = -80
+			if (ismembrane("kdr") || ismembrane("kap") || ismembrane("kad")) {ek=-80}
+			if (ismembrane("hd") ) {ehd_hd=-43 } // change from -30 to -50
+			}
+		
+	}
+obfunc connect2target() { localobj nc
+	soma nc = new NetCon(&v(0.5), $o1)
+	nc.threshold = 0
+	if (numarg() == 2) ($o2 = nc)
+	return nc
+	}	
+endtemplate Cell_A
+
+///////////////////////////////////////////////////////////
+
+begintemplate Cell_ADA
+	public soma, dend, p_dend, connect2target, type
+	create soma, dend, p_dend
+
+	public ncl, synlist
+	objref ncl, synlist
+	strdef type	
+		
+	proc init() {	
+	
+		ncl = new List()
+		synlist =new List()		
+		type = "Cell_ADA"	
+
+		gUnf_Xsoma = 2.5e-05
+		Rm = 80000 // decreased overall
+		SpineScale = 1.76371308
+		SpineScale_leak = 1.763714578
+		Cm = 1.4 
+		RaAll= 200
+		RaSoma= 146.969697 
+		RaAxIs = 100
+		Vpas = -70 
+		gna =  .03*0.6*1.5 /* decreased from 0.03 */
+		AXONM = 3 /*decrease from 2 */
+		gkdr = 0.005*.6 /* decreased from 0.005 */
+		KMULT =  0.022*.65 /* decreased from 0.022 */
+		KMULTP = 0.022*.65 /* decreased from 0.022 */
+		ghd=0.000003 *.7
+		nash=10
+		Vrest = -70
+		celsius = 31.0 
+		gsAHP = 0.008//0.03
+		GmC = 0.00055//0.062//0.07
+		Diameter = 5
+		
+		/////// topology ////////
+		create soma, dend
+		connect dend(0), soma(0)
+		connect p_dend(0), soma(1)
+		
+		/////// geometry ////////
+		soma {L = 25 diam = 24.75 nseg = 1}		//{L = 20 diam = 20 nseg = 13}
+		dend {diam=2.5 L=296.25/diam nseg=1}
+		p_dend {diam = Diameter L = 2000/diam nseg=1} //
+		
+		access soma
+		
+		forall {
+				insert cadyn gcabar_cadyn = 2e-4  eca = 120
+		}
+		p_dend {
+				insert leakDA el_leakDA=Vpas glbar_leakDA = 2.4444e-5*3 Ra=RaAll cm=Cm*1.98285453
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3DA sh_na3DA=nash ar_na3DA=1	gbar_na3DA=gna
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHP gsAHPbar_sAHP = 0.4*gsAHP
+				insert im gmbar_im = GmC
+				v=Vrest
+		}		
+		soma {	
+				insert na3DA  gbar_na3DA=1.9798*gna sh_na3DA=nash ar_na3DA=1				
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kap gkabar_kap = KMULTP*0.1
+				insert im gmbar_im = GmC	
+				insert leakDA el_leakDA=Vpas glbar_leakDA = 1/Rm Ra=RaSoma cm=Cm		
+		}	
+		
+		dend {  // need to add Spine Scale
+				insert leakDA el_leakDA=Vpas glbar_leakDA = SpineScale_leak*1/Rm*1.5 Ra=RaAll  cm=Cm*SpineScale     //1.9804/Rm	
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3DA sh_na3DA=nash ar_na3DA=1	gbar_na3DA=gna
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHP gsAHPbar_sAHP = gsAHP 
+				insert im gmbar_im = GmC		
+				}
+
+		forall {
+			v=Vrest
+			ena = 45
+			ek = -80
+			if (ismembrane("kdrDA") || ismembrane("kap") || ismembrane("kad")) {ek=-80}
+			if (ismembrane("hd") ) {ehd_hd=-43 } // change from -30 to -50
+			}
+		
+	}
+obfunc connect2target() { localobj nc
+	soma nc = new NetCon(&v(0.5), $o1)
+	nc.threshold = 0
+	if (numarg() == 2) ($o2 = nc)
+	return nc
+	}	
+endtemplate Cell_ADA
+
+////////////////////////////////////////////////////////
+begintemplate Cell_ANE
+	public soma, dend, p_dend, connect2target, type
+	create soma, dend, p_dend
+
+	public ncl, synlist
+	objref ncl, synlist
+	strdef type	
+		
+	proc init() {	
+	
+		ncl = new List()
+		synlist =new List()		
+		type = "Cell_ANE"	
+
+		gUnf_Xsoma = 2.5e-05
+		Rm = 80000 // decreased overall
+		SpineScale = 1.76371308
+		SpineScale_leak = 1.763714578
+		Cm = 1.4
+		RaAll= 200
+		RaSoma= 146.969697 
+		RaAxIs = 100
+		Vpas = -70 // -67
+		gna =  .03*0.6*1.5 /* decreased from 0.03 */
+		AXONM = 3 /*decrease from 2 */
+		gkdr = 0.005*.6 /* decreased from 0.005 */
+		KMULT =  0.022*.65 /* decreased from 0.022 */
+		KMULTP = 0.022*.65 /* decreased from 0.022 */
+		ghd=0.000003 *.7
+		nash=10
+		Vrest = -70
+		celsius = 31.0 
+		gsAHP = 0.008//0.03
+		GmC = 0.00055//0.062//0.07
+		Diameter = 5
+		
+		/////// topology ////////
+		create soma, dend
+		connect dend(0), soma(0)
+		connect p_dend(0), soma(1)
+		
+		/////// geometry ////////
+		soma {L = 25 diam = 24.75 nseg = 1}		//{L = 20 diam = 20 nseg = 13}
+		dend {diam=2.5 L=296.25/diam nseg=1}
+		p_dend {diam = Diameter L = 2000/diam nseg=1} //
+		
+		access soma
+		distance()
+		
+		forall {
+				insert cadyn gcabar_cadyn = 2e-4  eca = 120
+		}
+		p_dend {
+				insert leak el_leak=Vpas glbar_leak = 2.4444e-5*3 Ra=RaAll cm=Cm*1.98285453
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3 sh_na3=nash ar_na3=1	gbar_na3=gna
+				insert kdr gkdrbar_kdr=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHPNE gsAHPbar_sAHPNE = 0.4*gsAHP 
+				insert im gmbar_im = GmC
+				v=Vrest
+		}		
+		soma {	
+				insert na3  gbar_na3=1.9798*gna sh_na3=nash ar_na3=1				
+				insert kdr gkdrbar_kdr=gkdr
+				insert kap gkabar_kap = KMULTP*0.1
+				insert im gmbar_im = GmC	
+				insert leak el_leak=Vpas glbar_leak = 1/Rm Ra=RaSoma cm=Cm		
+		}	
+		
+		dend {  // need to add Spine Scale
+				insert leak el_leak=Vpas glbar_leak = SpineScale_leak*1/Rm*1.5 Ra=RaAll  cm=Cm*SpineScale     //1.9804/Rm	
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3 sh_na3=nash ar_na3=1	gbar_na3=gna
+				insert kdr gkdrbar_kdr=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHPNE gsAHPbar_sAHPNE = gsAHP 
+				insert im gmbar_im = GmC		
+				}
+
+		forall {
+			v=Vrest
+			ena = 45
+			ek = -80
+			if (ismembrane("kdr") || ismembrane("kap") || ismembrane("kad")) {ek=-80}
+			if (ismembrane("hd") ) {ehd_hd=-43 } // change from -30 to -50
+			}
+		
+	}
+obfunc connect2target() { localobj nc
+	soma nc = new NetCon(&v(0.5), $o1)
+	nc.threshold = 0
+	if (numarg() == 2) ($o2 = nc)
+	return nc
+	}	
+endtemplate Cell_ANE
+
+//////////////////////////////////////////////////
+
+begintemplate Cell_ADANE
+	public soma, dend, p_dend, connect2target, type
+	create soma, dend, p_dend
+
+	public ncl, synlist
+	objref ncl, synlist
+	strdef type	
+		
+	proc init() {	
+	
+		ncl = new List()
+		synlist =new List()		
+		type = "Cell_ADANE"	
+
+		gUnf_Xsoma = 2.5e-05
+		Rm = 80000 // decreased overall
+		SpineScale = 1.76371308
+		SpineScale_leak = 1.763714578
+		Cm = 1.4
+		RaAll= 200
+		RaSoma= 146.969697 
+		RaAxIs = 100
+		Vpas = -70 // -67
+		gna =  .03*0.6*1.5 /* decreased from 0.03 */
+		AXONM = 3 /*decrease from 2 */
+		gkdr = 0.005*.6 /* decreased from 0.005 */
+		KMULT =  0.022*.65 /* decreased from 0.022 */
+		KMULTP = 0.022*.65 /* decreased from 0.022 */
+		ghd=0.000003 *.7
+		nash=10
+		Vrest = -70
+		celsius = 31.0 
+		gsAHP = 0.008//0.03
+		GmC = 0.00055//0.062//0.07
+		Diameter = 5
+		
+		/////// topology ////////
+		create soma, dend
+		connect dend(0), soma(0)
+		connect p_dend(0), soma(1)
+		
+		/////// geometry ////////
+		soma {L = 25 diam = 24.75 nseg = 1}		//{L = 20 diam = 20 nseg = 13}
+		dend {diam=2.5 L=296.25/diam nseg=1}
+		p_dend {diam = Diameter L = 2000/diam nseg=1} //
+		
+		access soma
+		
+		forall {
+				insert cadyn gcabar_cadyn = 2e-4  eca = 120
+		}
+		p_dend {
+				insert leakDA el_leakDA=Vpas glbar_leakDA = 2.4444e-5*3 Ra=RaAll cm=Cm*1.98285453
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3DA sh_na3DA=nash ar_na3DA=1	gbar_na3DA=gna
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHPNE gsAHPbar_sAHPNE = 0.4*gsAHP 
+				insert im gmbar_im = GmC
+				v=Vrest
+		}		
+		soma {	
+				insert na3DA  gbar_na3DA=1.9798*gna sh_na3DA=nash ar_na3DA=1				
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kap gkabar_kap = KMULTP*0.1
+				insert im gmbar_im = GmC	
+				insert leakDA el_leakDA=Vpas glbar_leakDA = 1/Rm Ra=RaSoma cm=Cm		
+		}	
+		
+		dend {  // need to add Spine Scale
+				insert leakDA el_leakDA=Vpas glbar_leakDA = SpineScale_leak*1/Rm*1.5 Ra=RaAll  cm=Cm*SpineScale     //1.9804/Rm	
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3DA sh_na3DA=nash ar_na3DA=1	gbar_na3DA=gna
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHPNE gsAHPbar_sAHPNE = gsAHP 
+				insert im gmbar_im = GmC		
+				}
+
+		forall {
+			v=Vrest
+			ena = 45
+			ek = -80
+			if (ismembrane("kdrDA") || ismembrane("kap") || ismembrane("kad")) {ek=-80}
+			if (ismembrane("hd") ) {ehd_hd=-43 } // change from -30 to -50
+			}
+		
+	}
+obfunc connect2target() { localobj nc
+	soma nc = new NetCon(&v(0.5), $o1)
+	nc.threshold = 0
+	if (numarg() == 2) ($o2 = nc)
+	return nc
+	}	
+endtemplate Cell_ADANE
+
+/////////////////////////////
+///// Type B cell in LA /////
+/////////////////////////////
+begintemplate Cell_B
+	public soma, dend, p_dend, connect2target, type
+	create soma, dend, p_dend
+
+	public ncl, synlist
+	objref ncl, synlist
+	strdef type	
+		
+	proc init() {	
+	
+		ncl = new List()
+		synlist =new List()		
+		type = "Cell_B"	
+
+		gUnf_Xsoma = 2.5e-05
+		Rm = 80000 // decreased overall
+		SpineScale = 1.76371308
+		SpineScale_leak = 1.763714578
+		Cm = 1.4 
+		RaAll= 200
+		RaSoma= 146.969697 
+		RaAxIs = 100
+		Vpas = -70 // -67
+		gna =  .03*0.6*1.5 /* decreased from 0.03 */
+		AXONM = 3 /*decrease from 2 */
+		gkdr = 0.005*.6 /* decreased from 0.005 */
+		KMULT =  0.022*.65 /* decreased from 0.022 */
+		KMULTP = 0.022*.65 /* decreased from 0.022 */
+		ghd=0.000003 *.7
+		nash=10
+		Vrest = -70
+		celsius = 31.0 
+		gsAHP = 0.00045
+		GmC = 0.00039
+		Diameter = 5
+		
+		/////// topology ////////
+		create soma, dend
+		connect dend(0), soma(0)
+		connect p_dend(0), soma(1)
+		
+		/////// geometry ////////
+		soma {L = 25 diam = 24.75 nseg = 1}		//{L = 20 diam = 20 nseg = 13}
+		dend {diam=2.5 L=296.25/diam nseg=1}
+		p_dend {diam = Diameter L = 2000/diam nseg=1} //
+		
+		access soma
+		distance()
+		
+		forall {
+				insert cadyn gcabar_cadyn = 2e-4  eca = 120
+		}
+		p_dend {
+				insert leak el_leak=Vpas glbar_leak = 2.4444e-5*3 Ra=RaAll cm=Cm*1.98285453
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3 sh_na3=nash ar_na3=1	gbar_na3=gna
+				insert kdr gkdrbar_kdr=gkdr
+				insert kad gkabar_kad=0.031913796*0.1 			
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHP gsAHPbar_sAHP = 0.4*gsAHP 
+				insert im gmbar_im = GmC
+				v=Vrest
+		}		
+		soma {	
+				//insert hd ghdbar_hd=1.35758E-07	vhalfl_hd=-73 
+				insert na3  gbar_na3=1.9798*gna sh_na3=nash ar_na3=1				
+				insert kdr gkdrbar_kdr=gkdr
+				insert kap gkabar_kap = KMULTP*0.1
+				insert im gmbar_im = GmC	
+				insert leak el_leak=Vpas glbar_leak = 1/Rm Ra=RaSoma cm=Cm		
+		}	
+		
+		dend {  // need to add Spine Scale
+				insert leak el_leak=Vpas glbar_leak = SpineScale_leak*1/Rm*1.5 Ra=RaAll  cm=Cm*SpineScale     
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3 sh_na3=nash ar_na3=1	gbar_na3=gna
+				insert kdr gkdrbar_kdr=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHP gsAHPbar_sAHP = gsAHP 
+				insert im gmbar_im = GmC		
+				}
+
+		forall {
+			v=Vrest
+			ena = 45
+			ek = -80
+			if (ismembrane("kdr") || ismembrane("kap") || ismembrane("kad")) {ek=-80}
+			if (ismembrane("hd") ) {ehd_hd=-43 } // change from -30 to -50
+			}
+		
+	}
+obfunc connect2target() { localobj nc
+	soma nc = new NetCon(&v(0.5), $o1)
+	nc.threshold = 0
+	if (numarg() == 2) ($o2 = nc)
+	return nc
+	}		
+endtemplate Cell_B
+
+////////////////////////////////////////////////
+
+begintemplate Cell_BDA
+	public soma, dend, p_dend, connect2target, type
+	create soma, dend, p_dend
+
+	public ncl, synlist
+	objref ncl, synlist
+	strdef type	
+		
+	proc init() {	
+	
+		ncl = new List()
+		synlist =new List()		
+		type = "Cell_BDA"	
+
+		gUnf_Xsoma = 2.5e-05
+		Rm = 80000 // decreased overall
+		SpineScale = 1.76371308
+		SpineScale_leak = 1.763714578
+		Cm = 1.4 
+		RaAll= 200
+		RaSoma= 146.969697 
+		RaAxIs = 100
+		Vpas = -70 
+		gna =  .03*0.6*1.5 /* decreased from 0.03 */
+		AXONM = 3 /*decrease from 2 */
+		gkdr = 0.005*.6 /* decreased from 0.005 */
+		KMULT =  0.022*.65 /* decreased from 0.022 */
+		KMULTP = 0.022*.65 /* decreased from 0.022 */
+		ghd=0.000003 *.7
+		nash=10
+		Vrest = -70
+		celsius = 31.0 
+		gsAHP = 0.00045
+		GmC = 0.00039
+		Diameter = 5
+		
+		/////// topology ////////
+		create soma, dend
+		connect dend(0), soma(0)
+		connect p_dend(0), soma(1)
+		
+		/////// geometry ////////
+		soma {L = 25 diam = 24.75 nseg = 1}		//{L = 20 diam = 20 nseg = 13}
+		dend {diam=2.5 L=296.25/diam nseg=1}
+		p_dend {diam = Diameter L = 2000/diam nseg=1} //
+		
+		access soma
+		distance()
+		
+		forall {
+				insert cadyn gcabar_cadyn = 2e-4  eca = 120
+		}
+		p_dend {
+				insert leakDA el_leakDA=Vpas glbar_leakDA = 2.4444e-5*3 Ra=RaAll cm=Cm*1.98285453
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3DA sh_na3DA=nash ar_na3DA=1	gbar_na3DA=gna
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHP gsAHPbar_sAHP = 0.4*gsAHP
+				insert im gmbar_im = GmC
+				v=Vrest
+		}		
+		soma {	
+				insert na3DA  gbar_na3DA=1.9798*gna sh_na3DA=nash ar_na3DA=1				
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kap gkabar_kap = KMULTP*0.1
+				insert im gmbar_im = GmC	
+				insert leakDA el_leakDA=Vpas glbar_leakDA = 1/Rm Ra=RaSoma cm=Cm		
+		}	
+		
+		dend {  // need to add Spine Scale
+				insert leakDA el_leakDA=Vpas glbar_leakDA = SpineScale_leak*1/Rm*1.5 Ra=RaAll  cm=Cm*SpineScale     //1.9804/Rm	
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3DA sh_na3DA=nash ar_na3DA=1	gbar_na3DA=gna
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHP gsAHPbar_sAHP = gsAHP //2.3181e-05
+				insert im gmbar_im = GmC		
+				}
+
+		forall {
+			v=Vrest
+			ena = 45
+			ek = -80
+			if (ismembrane("kdrDA") || ismembrane("kap") || ismembrane("kad")) {ek=-80}
+			if (ismembrane("hd") ) {ehd_hd=-43 } // change from -30 to -50
+			}
+		
+	}
+obfunc connect2target() { localobj nc
+	soma nc = new NetCon(&v(0.5), $o1)
+	nc.threshold = 0
+	if (numarg() == 2) ($o2 = nc)
+	return nc
+	}		
+endtemplate Cell_BDA
+
+//////////////////////////////////////////////////
+
+begintemplate Cell_BNE
+	public soma, dend, p_dend, connect2target, type
+	create soma, dend, p_dend
+
+	public ncl, synlist
+	objref ncl, synlist
+	strdef type	
+		
+	proc init() {	
+	
+		ncl = new List()
+		synlist =new List()		
+		type = "Cell_BNE"	
+
+		gUnf_Xsoma = 2.5e-05
+		Rm = 80000 // decreased overall
+		SpineScale = 1.76371308
+		SpineScale_leak = 1.763714578
+		Cm = 1.4 
+		RaAll= 200
+		RaSoma= 146.969697 
+		RaAxIs = 100
+		Vpas = -70 
+		gna =  .03*0.6*1.5 /* decreased from 0.03 */
+		AXONM = 3 /*decrease from 2 */
+		gkdr = 0.005*.6 /* decreased from 0.005 */
+		KMULT =  0.022*.65 /* decreased from 0.022 */
+		KMULTP = 0.022*.65 /* decreased from 0.022 */
+		ghd=0.000003 *.7
+		nash=10
+		Vrest = -70
+		celsius = 31.0 
+		gsAHP = 0.00045
+		GmC = 0.00039
+		Diameter = 5
+		
+		/////// topology ////////
+		create soma, dend
+		connect dend(0), soma(0)
+		connect p_dend(0), soma(1)
+		
+		/////// geometry ////////
+		soma {L = 25 diam = 24.75 nseg = 1}		//{L = 20 diam = 20 nseg = 13}
+		dend {diam=2.5 L=296.25/diam nseg=1}
+		p_dend {diam = Diameter L = 2000/diam nseg=1} //
+		
+		access soma
+		distance()
+		
+		forall {
+				insert cadyn gcabar_cadyn = 2e-4  eca = 120
+		}
+		p_dend {
+				insert leak el_leak=Vpas glbar_leak = 2.4444e-5*3 Ra=RaAll cm=Cm*1.98285453
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3 sh_na3=nash ar_na3=1	gbar_na3=gna
+				insert kdr gkdrbar_kdr=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHPNE gsAHPbar_sAHPNE = 0.4*gsAHP //0.008968224 //0.00015 //2.3181e-05
+				insert im gmbar_im = GmC
+				v=Vrest
+		}		
+		soma {	
+				insert na3  gbar_na3=1.9798*gna sh_na3=nash ar_na3=1				
+				insert kdr gkdrbar_kdr=gkdr
+				insert kap gkabar_kap = KMULTP*0.1
+				insert im gmbar_im = GmC	
+				insert leak el_leak=Vpas glbar_leak = 1/Rm Ra=RaSoma cm=Cm		
+		}	
+		
+		dend {  // need to add Spine Scale
+				insert leak el_leak=Vpas glbar_leak = SpineScale_leak*1/Rm*1.5 Ra=RaAll  cm=Cm*SpineScale     //1.9804/Rm	
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3 sh_na3=nash ar_na3=1	gbar_na3=gna
+				insert kdr gkdrbar_kdr=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHPNE gsAHPbar_sAHPNE = gsAHP //2.3181e-05
+				insert im gmbar_im = GmC		
+				}
+
+		forall {
+			v=Vrest
+			ena = 45
+			ek = -80
+			if (ismembrane("kdr") || ismembrane("kap") || ismembrane("kad")) {ek=-80}
+			if (ismembrane("hd") ) {ehd_hd=-43 } // change from -30 to -50
+			}
+		
+	}
+obfunc connect2target() { localobj nc
+	soma nc = new NetCon(&v(0.5), $o1)
+	nc.threshold = 0
+	if (numarg() == 2) ($o2 = nc)
+	return nc
+	}		
+endtemplate Cell_BNE
+
+/////////////////////////////////////////////////////////
+
+begintemplate Cell_BDANE
+	public soma, dend, p_dend, connect2target, type
+	create soma, dend, p_dend
+
+	public ncl, synlist
+	objref ncl, synlist
+	strdef type	
+		
+	proc init() {	
+	
+		ncl = new List()
+		synlist =new List()		
+		type = "Cell_BDANE"		
+
+		gUnf_Xsoma = 2.5e-05
+		Rm = 80000 // decreased overall
+		SpineScale = 1.76371308
+		SpineScale_leak = 1.763714578
+		Cm = 1.4
+		RaAll= 200
+		RaSoma= 146.969697 
+		RaAxIs = 100
+		Vpas = -70 // -67
+		gna =  .03*0.6*1.5 /* decreased from 0.03 */
+		AXONM = 3 /*decrease from 2 */
+		gkdr = 0.005*.6 /* decreased from 0.005 */
+		KMULT =  0.022*.65 /* decreased from 0.022 */
+		KMULTP = 0.022*.65 /* decreased from 0.022 */
+		ghd=0.000003 *.7
+		nash=10
+		Vrest = -70
+		celsius = 31.0 
+		gsAHP = 0.00045
+		GmC = 0.00039
+		Diameter = 5
+		
+		/////// topology ////////
+		create soma, dend
+		connect dend(0), soma(0)
+		connect p_dend(0), soma(1)
+		
+		/////// geometry ////////
+		soma {L = 25 diam = 24.75 nseg = 1}		//{L = 20 diam = 20 nseg = 13}
+		dend {diam=2.5 L=296.25/diam nseg=1}
+		p_dend {diam = Diameter L = 2000/diam nseg=1} //
+		
+		access soma
+		distance()
+		
+		forall {
+				insert cadyn gcabar_cadyn = 2e-4  eca = 120
+		}
+		p_dend {
+				insert leakDA el_leakDA=Vpas glbar_leakDA = 2.4444e-5*3 Ra=RaAll cm=Cm*1.98285453
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3DA sh_na3DA=nash ar_na3DA=1	gbar_na3DA=gna
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHPNE gsAHPbar_sAHPNE = 0.4*gsAHP //0.008968224 //0.00015 //2.3181e-05
+				insert im gmbar_im = GmC
+				v=Vrest
+		}		
+		soma {	
+				insert na3DA  gbar_na3DA=1.9798*gna sh_na3DA=nash ar_na3DA=1				
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kap gkabar_kap = KMULTP*0.1
+				insert im gmbar_im = GmC	
+				insert leakDA el_leakDA=Vpas glbar_leakDA = 1/Rm Ra=RaSoma cm=Cm		
+		}	
+		
+		dend {  // need to add Spine Scale
+				insert leakDA el_leakDA=Vpas glbar_leakDA = SpineScale_leak*1/Rm*1.5 Ra=RaAll  cm=Cm*SpineScale     //1.9804/Rm	
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3DA sh_na3DA=nash ar_na3DA=1	gbar_na3DA=gna
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHPNE gsAHPbar_sAHPNE = gsAHP //2.3181e-05
+				insert im gmbar_im = GmC		
+				}
+
+		forall {
+			v=Vrest
+			ena = 45
+			ek = -80
+			if (ismembrane("kdrDA") || ismembrane("kap") || ismembrane("kad")) {ek=-80}
+			if (ismembrane("hd") ) {ehd_hd=-43 } // change from -30 to -50
+			}
+		
+	}
+obfunc connect2target() { localobj nc
+	soma nc = new NetCon(&v(0.5), $o1)
+	nc.threshold = 0
+	if (numarg() == 2) ($o2 = nc)
+	return nc
+	}		
+endtemplate Cell_BDANE
+
+/////////////////////////////
+///// Type C cell in LA /////
+/////////////////////////////
+
+begintemplate Cell_C
+	public soma, dend, p_dend, connect2target, type
+	create soma, dend, p_dend
+
+	public ncl, synlist
+	objref ncl, synlist
+	strdef type	
+		
+	proc init() {	
+	
+		ncl = new List()
+		synlist =new List()		
+		type = "Cell_C"	
+
+		gUnf_Xsoma = 2.5e-05
+		Rm = 80000 // decreased overall
+		SpineScale = 1.76371308
+		SpineScale_leak = 1.763714578
+		Cm = 1.4
+		RaAll= 200
+		RaSoma= 146.969697 
+		RaAxIs = 100
+		Vpas = -70 // -67
+		gna =  .03*0.6*1.5 /* decreased from 0.03 */
+		AXONM = 3 /*decrease from 2 */
+		gkdr = 0.005*.6 /* decreased from 0.005 */
+		KMULT =  0.022*.65 /* decreased from 0.022 */
+		KMULTP = 0.022*.65 /* decreased from 0.022 */
+		ghd=0.000003 *.7
+		nash=10
+		Vrest = -70
+		celsius = 31.0 
+		gsAHP = 0.00036//0.03
+		GmC = 0.0004//0.062//0.07
+		Diameter = 5
+		
+		/////// topology ////////
+		create soma, dend
+		connect dend(0), soma(0)
+		connect p_dend(0), soma(1)
+		
+		/////// geometry ////////
+		soma {L = 25 diam = 24.75 nseg = 1}		//{L = 20 diam = 20 nseg = 13}
+		dend {diam=2.5 L=296.25/diam nseg=1}
+		p_dend {diam = Diameter L = 2000/diam nseg=1} //
+		
+		access soma
+		distance()
+		
+		forall {
+				insert cadyn gcabar_cadyn = 2e-4  eca = 120
+		}
+		p_dend {
+				insert leak el_leak=Vpas glbar_leak = 2.4444e-5*3 Ra=RaAll cm=Cm*1.98285453
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3 sh_na3=nash ar_na3=1	gbar_na3=gna
+				insert kdr gkdrbar_kdr=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHP gsAHPbar_sAHP = 0.4*gsAHP
+				insert im gmbar_im = GmC
+				v=Vrest
+		}		
+		soma {	
+				insert na3  gbar_na3=1.9798*gna sh_na3=nash ar_na3=1				
+				insert kdr gkdrbar_kdr=gkdr
+				insert kap gkabar_kap = KMULTP*0.1
+				insert im gmbar_im = GmC	
+				insert leak el_leak=Vpas glbar_leak = 1/Rm Ra=RaSoma cm=Cm		
+		}	
+		
+		dend {  // need to add Spine Scale
+				insert leak el_leak=Vpas glbar_leak = SpineScale_leak*1/Rm*1.5 Ra=RaAll  cm=Cm*SpineScale     //1.9804/Rm	
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3 sh_na3=nash ar_na3=1	gbar_na3=gna
+				insert kdr gkdrbar_kdr=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHP gsAHPbar_sAHP = gsAHP //2.3181e-05
+				insert im gmbar_im = GmC		
+				}
+
+		forall {
+			v=Vrest
+			ena = 45
+			ek = -80
+			if (ismembrane("kdr") || ismembrane("kap") || ismembrane("kad")) {ek=-80}
+			if (ismembrane("hd") ) {ehd_hd=-43 } // change from -30 to -50
+			}
+		
+	}
+obfunc connect2target() { localobj nc
+	soma nc = new NetCon(&v(0.5), $o1)
+	nc.threshold = 0
+	if (numarg() == 2) ($o2 = nc)
+	return nc
+	}	
+endtemplate Cell_C
+
+/////////////////////////////////////////////////
+
+begintemplate Cell_CDA
+	public soma, dend, p_dend, connect2target, type
+	create soma, dend, p_dend
+
+	public ncl, synlist
+	objref ncl, synlist
+	strdef type	
+		
+	proc init() {	
+	
+		ncl = new List()
+		synlist =new List()		
+		type = "Cell_CDA"	
+
+		gUnf_Xsoma = 2.5e-05
+		Rm = 80000 // decreased overall
+		SpineScale = 1.76371308
+		SpineScale_leak = 1.763714578
+		Cm = 1.4
+		RaAll= 200
+		RaSoma= 146.969697 
+		RaAxIs = 100
+		Vpas = -70 // -67
+		gna =  .03*0.6*1.5 /* decreased from 0.03 */
+		AXONM = 3 /*decrease from 2 */
+		gkdr = 0.005*.6 /* decreased from 0.005 */
+		KMULT =  0.022*.65 /* decreased from 0.022 */
+		KMULTP = 0.022*.65 /* decreased from 0.022 */
+		ghd=0.000003 *.7
+		nash=10
+		Vrest = -70
+		celsius = 31.0 
+		gsAHP = 0.00036//0.03
+		GmC = 0.0004//0.062//0.07
+		Diameter = 5
+		
+		/////// topology ////////
+		create soma, dend
+		connect dend(0), soma(0)
+		connect p_dend(0), soma(1)
+		
+		/////// geometry ////////
+		soma {L = 25 diam = 24.75 nseg = 1}		//{L = 20 diam = 20 nseg = 13}
+		dend {diam=2.5 L=296.25/diam nseg=1}
+		p_dend {diam = Diameter L = 2000/diam nseg=1} //
+		
+		access soma
+		distance()
+		
+		forall {
+				insert cadyn gcabar_cadyn = 2e-4  eca = 120
+		}
+		p_dend {
+				insert leakDA el_leakDA=Vpas glbar_leakDA = 2.4444e-5*3 Ra=RaAll cm=Cm*1.98285453
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3DA sh_na3DA=nash ar_na3DA=1	gbar_na3DA=gna
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHP gsAHPbar_sAHP = 0.4*gsAHP
+
+				insert im gmbar_im = GmC
+				v=Vrest
+		}		
+		soma {	
+				//insert hd ghdbar_hd=1.35758E-07	vhalfl_hd=-73 // changed from - 73 mV 
+				insert na3DA  gbar_na3DA=1.9798*gna sh_na3DA=nash ar_na3DA=1				
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kap gkabar_kap = KMULTP*0.1
+				insert im gmbar_im = GmC	
+				insert leakDA el_leakDA=Vpas glbar_leakDA = 1/Rm Ra=RaSoma cm=Cm		
+		}	
+		
+		dend {  // need to add Spine Scale
+				insert leakDA el_leakDA=Vpas glbar_leakDA = SpineScale_leak*1/Rm*1.5 Ra=RaAll  cm=Cm*SpineScale     //1.9804/Rm	
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3DA sh_na3DA=nash ar_na3DA=1	gbar_na3DA=gna
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHP gsAHPbar_sAHP = gsAHP //2.3181e-05
+				insert im gmbar_im = GmC		
+				}
+
+		forall {
+			v=Vrest
+			ena = 45
+			ek = -80
+			if (ismembrane("kdrDA") || ismembrane("kap") || ismembrane("kad")) {ek=-80}
+			if (ismembrane("hd") ) {ehd_hd=-43 } // change from -30 to -50
+			}
+		
+	}
+obfunc connect2target() { localobj nc
+	soma nc = new NetCon(&v(0.5), $o1)
+	nc.threshold = 0
+	if (numarg() == 2) ($o2 = nc)
+	return nc
+	}	
+endtemplate Cell_CDA
+
+/////////////////////////////////////////////////
+
+begintemplate Cell_CNE
+	public soma, dend, p_dend, connect2target, type
+	create soma, dend, p_dend
+
+	public ncl, synlist
+	objref ncl, synlist
+	strdef type	
+		
+	proc init() {	
+	
+		ncl = new List()
+		synlist =new List()		
+		type = "Cell_CNE"	
+
+		gUnf_Xsoma = 2.5e-05
+		Rm = 80000 // decreased overall
+		SpineScale = 1.76371308
+		SpineScale_leak = 1.763714578
+		Cm = 1.4
+		RaAll= 200
+		RaSoma= 146.969697 
+		RaAxIs = 100
+		Vpas = -70 // -67
+		gna =  .03*0.6*1.5 /* decreased from 0.03 */
+		AXONM = 3 /*decrease from 2 */
+		gkdr = 0.005*.6 /* decreased from 0.005 */
+		KMULT =  0.022*.65 /* decreased from 0.022 */
+		KMULTP = 0.022*.65 /* decreased from 0.022 */
+		ghd=0.000003 *.7
+		nash=10
+		Vrest = -70
+		celsius = 31.0 
+		gsAHP = 0.00036//0.03
+		GmC = 0.0004//0.062//0.07
+		Diameter = 5
+		
+		/////// topology ////////
+		create soma, dend
+		connect dend(0), soma(0)
+		connect p_dend(0), soma(1)
+		
+		/////// geometry ////////
+		soma {L = 25 diam = 24.75 nseg = 1}		//{L = 20 diam = 20 nseg = 13}
+		dend {diam=2.5 L=296.25/diam nseg=1}
+		p_dend {diam = Diameter L = 2000/diam nseg=1} //
+		
+		access soma
+		distance()
+		
+		forall {
+				insert cadyn gcabar_cadyn = 2e-4  eca = 120
+				//insert cal gcalbar_cal = 0.005 /*decreased from 0.003 */
+		}
+		p_dend {
+				insert leak el_leak=Vpas glbar_leak = 2.4444e-5*3 Ra=RaAll cm=Cm*1.98285453
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3 sh_na3=nash ar_na3=1	gbar_na3=gna
+				insert kdr gkdrbar_kdr=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHPNE gsAHPbar_sAHPNE = 0.4*gsAHP 
+				insert im gmbar_im = GmC
+				v=Vrest
+		}		
+		soma {	
+				//insert hd ghdbar_hd=1.35758E-07	vhalfl_hd=-73 // changed from - 73 mV 
+				insert na3  gbar_na3=1.9798*gna sh_na3=nash ar_na3=1				
+				insert kdr gkdrbar_kdr=gkdr
+				insert kap gkabar_kap = KMULTP*0.1
+				insert im gmbar_im = GmC	
+				insert leak el_leak=Vpas glbar_leak = 1/Rm Ra=RaSoma cm=Cm		
+		}	
+		
+		dend {  // need to add Spine Scale
+				insert leak el_leak=Vpas glbar_leak = SpineScale_leak*1/Rm*1.5 Ra=RaAll  cm=Cm*SpineScale     //1.9804/Rm	
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3 sh_na3=nash ar_na3=1	gbar_na3=gna
+				insert kdr gkdrbar_kdr=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHPNE gsAHPbar_sAHPNE = gsAHP 
+
+				insert im gmbar_im = GmC		
+				}
+
+		forall {
+			v=Vrest
+			ena = 45
+			ek = -80
+			if (ismembrane("kdr") || ismembrane("kap") || ismembrane("kad")) {ek=-80}
+			if (ismembrane("hd") ) {ehd_hd=-43 } // change from -30 to -50
+			}
+		
+	}
+obfunc connect2target() { localobj nc
+	soma nc = new NetCon(&v(0.5), $o1)
+	nc.threshold = 0
+	if (numarg() == 2) ($o2 = nc)
+	return nc
+	}	
+endtemplate Cell_CNE
+
+//////////////////////////////////////////////
+
+begintemplate Cell_CDANE
+	public soma, dend, p_dend, connect2target, type
+	create soma, dend, p_dend
+
+	public ncl, synlist
+	objref ncl, synlist
+	strdef type	
+		
+	proc init() {	
+	
+		ncl = new List()
+		synlist =new List()		
+		type = "Cell_CDANE"	
+
+		gUnf_Xsoma = 2.5e-05
+		Rm = 80000 // decreased overall
+		SpineScale = 1.76371308
+		SpineScale_leak = 1.763714578
+		Cm = 1.4
+		RaAll= 200
+		RaSoma= 146.969697 
+		RaAxIs = 100
+		Vpas = -70 // -67
+		gna =  .03*0.6*1.5 /* decreased from 0.03 */
+		AXONM = 3 /*decrease from 2 */
+		gkdr = 0.005*.6 /* decreased from 0.005 */
+		KMULT =  0.022*.65 /* decreased from 0.022 */
+		KMULTP = 0.022*.65 /* decreased from 0.022 */
+		ghd=0.000003 *.7
+		nash=10
+		Vrest = -70
+		celsius = 31.0 
+		gsAHP = 0.00036//0.03
+		GmC = 0.0004//0.062//0.07
+		Diameter = 5
+		
+		/////// topology ////////
+		create soma, dend
+		connect dend(0), soma(0)
+		connect p_dend(0), soma(1)
+		
+		/////// geometry ////////
+		soma {L = 25 diam = 24.75 nseg = 1}		//{L = 20 diam = 20 nseg = 13}
+		dend {diam=2.5 L=296.25/diam nseg=1}
+		p_dend {diam = Diameter L = 2000/diam nseg=1} //
+		
+		access soma
+		distance()
+		
+		forall {
+				insert cadyn gcabar_cadyn = 2e-4  eca = 120
+				//insert cal gcalbar_cal = 0.005 /*decreased from 0.003 */
+		}
+		p_dend {
+				insert leakDA el_leakDA=Vpas glbar_leakDA = 2.4444e-5*3 Ra=RaAll cm=Cm*1.98285453
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3DA sh_na3DA=nash ar_na3DA=1	gbar_na3DA=gna
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHPNE gsAHPbar_sAHPNE = 0.4*gsAHP 
+				insert im gmbar_im = GmC
+				v=Vrest
+		}		
+		soma {	
+				insert na3DA  gbar_na3DA=1.9798*gna sh_na3DA=nash ar_na3DA=1				
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kap gkabar_kap = KMULTP*0.1
+				insert im gmbar_im = GmC	
+				insert leakDA el_leakDA=Vpas glbar_leakDA = 1/Rm Ra=RaSoma cm=Cm		
+		}	
+		
+		dend {  // need to add Spine Scale
+				insert leakDA el_leakDA=Vpas glbar_leakDA = SpineScale_leak*1/Rm*1.5 Ra=RaAll  cm=Cm*SpineScale     //1.9804/Rm	
+				insert hd ghdbar_hd=2.85995e-05 vhalfl_hd=-78.72884325   //ghd
+				insert na3DA sh_na3DA=nash ar_na3DA=1	gbar_na3DA=gna
+				insert kdrDA gkdrbar_kdrDA=gkdr
+				insert kad gkabar_kad=0.031913796*0.1				
+				insert capool taucas = 1000  fcas_capool = 0.05
+				insert sAHPNE gsAHPbar_sAHPNE = gsAHP 
+				insert im gmbar_im = GmC		
+				}
+
+		forall {
+			v=Vrest
+			ena = 45
+			ek = -80
+			if (ismembrane("kdrDA") || ismembrane("kap") || ismembrane("kad")) {ek=-80}
+			if (ismembrane("hd") ) {ehd_hd=-43 } // change from -30 to -50
+			}
+		
+	}
+obfunc connect2target() { localobj nc
+	soma nc = new NetCon(&v(0.5), $o1)
+	nc.threshold = 0
+	if (numarg() == 2) ($o2 = nc)
+	return nc
+	}	
+endtemplate Cell_CDANE
