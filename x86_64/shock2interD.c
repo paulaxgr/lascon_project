@@ -294,7 +294,7 @@ extern void _cvode_abstol( Symbol**, double*, int);
  pnt_receive[_mechtype] = _net_receive;
  pnt_receive_size[_mechtype] = 1;
  	hoc_register_var(hoc_scdoub, hoc_vdoub, hoc_intfunc);
- 	ivoc_help("help ?1 shock2interD /home/nest/Desktop/Project_codes/x86_64/shock2interD.mod\n");
+ 	ivoc_help("help ?1 shock2interD /home/nest/lascon_project/x86_64/shock2interD.mod\n");
  hoc_register_limits(_mechtype, _hoc_parm_limits);
  hoc_register_units(_mechtype, _hoc_parm_units);
  }
@@ -606,7 +606,7 @@ _first = 0;
 #endif
 
 #if NMODL_TEXT
-static const char* nmodl_filename = "/home/nest/Desktop/Project_codes/KimEtAl2013/shock2interD.mod";
+static const char* nmodl_filename = "/home/nest/lascon_project/KimEtAl2013/shock2interD.mod";
 static const char* nmodl_file_text = 
   ":Shock to Interneuron Cells AMPA+NMDA with local Ca2+ pool\n"
   "\n"

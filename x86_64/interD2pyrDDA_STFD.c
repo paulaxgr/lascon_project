@@ -450,7 +450,7 @@ extern void _cvode_abstol( Symbol**, double*, int);
  pnt_receive[_mechtype] = _net_receive;
  pnt_receive_size[_mechtype] = 1;
  	hoc_register_var(hoc_scdoub, hoc_vdoub, hoc_intfunc);
- 	ivoc_help("help ?1 interD2pyrDDA_STFD /home/nest/Desktop/Project_codes/x86_64/interD2pyrDDA_STFD.mod\n");
+ 	ivoc_help("help ?1 interD2pyrDDA_STFD /home/nest/lascon_project/x86_64/interD2pyrDDA_STFD.mod\n");
  hoc_register_limits(_mechtype, _hoc_parm_limits);
  hoc_register_units(_mechtype, _hoc_parm_units);
  }
@@ -1233,7 +1233,7 @@ _first = 0;
 }
 
 #if NMODL_TEXT
-static const char* nmodl_filename = "/home/nest/Desktop/Project_codes/KimEtAl2013/interD2pyrDDA_STFD.mod";
+static const char* nmodl_filename = "/home/nest/lascon_project/KimEtAl2013/interD2pyrDDA_STFD.mod";
 static const char* nmodl_file_text = 
   ":Interneuron Cells to Pyramidal Cells GABA with local Ca2+ pool and read public soma Ca2+ pool\n"
   "\n"

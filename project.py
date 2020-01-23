@@ -15,10 +15,10 @@ arq2 = './KimEtAl2013/interneuron_template.hoc'
 netParams = specs.NetParams()
 # object of class NetParams to store the network parameters
 ## Population parameter
-netParams.popParams['A_pop'] = {'cellType': 'A', 'numCells': 1, 'cellModel': 'HH'}
-netParams.popParams['B_pop'] = {'cellType': 'B', 'numCells': 1, 'cellModel': 'HH'}
-netParams.popParams['C_pop'] = {'cellType': 'C', 'numCells': 1, 'cellModel': 'HH'}
-netParams.popParams['IN_pop'] = {'cellType': 'Interneuron', 'numCells': 1, 'cellModel': 'HH'}
+netParams.popParams['A_pop'] = {'cellType': 'A', 'numCells': 5, 'cellModel': 'HH'}
+netParams.popParams['B_pop'] = {'cellType': 'B', 'numCells': 5, 'cellModel': 'HH'}
+netParams.popParams['C_pop'] = {'cellType': 'C', 'numCells': 5, 'cellModel': 'HH'}
+netParams.popParams['IN_pop'] = {'cellType': 'Interneuron', 'numCells': 5, 'cellModel': 'HH'}
 
 ### Import A
 netParams.importCellParams(label='A_rule', conds={'cellType': 'A', 'cellModel': 'HH'},	fileName=arq, cellName='Cell_A', importSynMechs=True)
@@ -61,7 +61,7 @@ simConfig.saveJson = True
 # Save params, network and sim output to pickle file
 simConfig.analysis['plotRaster'] = {'orderInverse': True, 'saveFig': 'tut_import_raster.png'}
 # Plot a raster
-simConfig.analysis['plotTraces'] = {'include': [0,1,2,3]}
+simConfig.analysis['plotTraces'] = {'include': [0,5,10,15]}
 # Plot recorded traces for this list of cells
 # Create network and run simulation
 sim.createSimulateAnalyze(netParams = netParams, simConfig = simConfig)

@@ -348,7 +348,7 @@ extern void _cvode_abstol( Symbol**, double*, int);
  	hoc_register_cvode(_mechtype, _ode_count, _ode_map, _ode_spec, _ode_matsol);
  	hoc_register_tolerance(_mechtype, _hoc_state_tol, &_atollist);
  	hoc_register_var(hoc_scdoub, hoc_vdoub, hoc_intfunc);
- 	ivoc_help("help ?1 na3 /home/nest/Desktop/Project_codes/x86_64/na3.mod\n");
+ 	ivoc_help("help ?1 na3 /home/nest/lascon_project/x86_64/na3.mod\n");
  hoc_register_limits(_mechtype, _hoc_parm_limits);
  hoc_register_units(_mechtype, _hoc_parm_units);
  }
@@ -678,7 +678,7 @@ _first = 0;
 }
 
 #if NMODL_TEXT
-static const char* nmodl_filename = "/home/nest/Desktop/Project_codes/KimEtAl2013/na3.mod";
+static const char* nmodl_filename = "/home/nest/lascon_project/KimEtAl2013/na3.mod";
 static const char* nmodl_file_text = 
   "TITLE na3\n"
   ": Na current \n"
