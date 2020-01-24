@@ -1,1 +1,0 @@
-../mods//pyrD2pyrD_STFD.mod

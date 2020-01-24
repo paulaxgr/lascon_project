@@ -1,1 +1,0 @@
-../mods//shock2interD.mod

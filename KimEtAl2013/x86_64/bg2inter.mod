@@ -1,1 +1,0 @@
-../mods//bg2inter.mod
