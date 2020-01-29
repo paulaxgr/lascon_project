@@ -66,6 +66,7 @@ extern void _tone2pyrV_LAdd_reg(void);
 extern void _tone2pyrV_reg(void);
 extern void _tone2pyrVNE_LAdd_reg(void);
 extern void _tone2pyrVNE_reg(void);
+extern void _vecevent_reg(void);
 
 void modl_reg(){
   if (!nrn_nobanner_) if (nrnmpi_myid < 1) {
@@ -134,6 +135,7 @@ void modl_reg(){
     fprintf(stderr," ./KimEtAl2013//tone2pyrV.mod");
     fprintf(stderr," ./KimEtAl2013//tone2pyrVNE_LAdd.mod");
     fprintf(stderr," ./KimEtAl2013//tone2pyrVNE.mod");
+    fprintf(stderr," ./KimEtAl2013//vecevent.mod");
     fprintf(stderr, "\n");
   }
   _bg2inter_reg();
@@ -199,4 +201,5 @@ void modl_reg(){
   _tone2pyrV_reg();
   _tone2pyrVNE_LAdd_reg();
   _tone2pyrVNE_reg();
+  _vecevent_reg();
 }
